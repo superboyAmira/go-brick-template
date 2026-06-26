@@ -1,0 +1,35 @@
+---
+description: Read llm/manifest.json first when editing Go backend; follow modules + bricks architecture from networking-backend
+alwaysApply: true
+---
+
+# Go Brick Template — навигация по manifest
+
+Перед правками загрузи манифесты:
+
+| Манифест | Архитектура |
+|----------|-------------|
+| `llm/manifest.json` + `llm/codebase/manifest.json` | modules + bricks (Go) |
+
+## Порядок чтения
+
+1. Правки кода: `llm/codebase/manifest.json` → точечно файлы из `task_routing`
+2. Контракты и обзор: `llm/manifest.json` → `docs/ARCHITECTURE.md` → `MODULES.md` / `BRICKS.md`
+3. OpenAPI / bricks YAML — **один** релевантный файл, не весь каталог
+
+## Обязательные ограничения
+
+- Не импортировать кирпич напрямую — только через contract
+- SQL только Squirrel + pgx в repository; без sqlc
+- LLM/inference только через `module/llm`, `module/embedder`, `module/whisper` (при добавлении)
+- Не редактировать `.cursor/plans/*.plan.md` без явной просьбы
+
+## Документация при влиятельных правках
+
+Обновляй существующие docs (см. `manifest.docs`):
+
+- Новый модуль → `docs/MODULES.md`, `internal/config`, `llm/manifest.json`
+- Новый кирпич → `docs/BRICKS.md`, `docs/contracts/bricks/<name>.yaml`
+- Новые env → `README.md`, `deploy/.env.example`
+
+Не создавай новые markdown без запроса.

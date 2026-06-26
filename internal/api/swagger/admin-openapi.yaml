@@ -1,0 +1,84 @@
+openapi: 3.1.0
+info:
+  title: Go Brick Template Admin API
+  version: 1.0.0
+  description: Operations endpoints (separate listener, default :9090).
+
+servers:
+  - url: http://localhost:9090
+    description: Local admin
+
+tags:
+  - name: ops
+    description: Health and readiness
+
+paths:
+  /health:
+    get:
+      tags: [ops]
+      operationId: adminHealth
+      security: []
+      summary: Liveness probe
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /ready:
+    get:
+      tags: [ops]
+      operationId: adminReady
+      summary: Readiness (postgres, redis, qdrant)
+      description: Requires Bearer admin token or X-Admin-Token when ADMIN_HTTP_TOKEN is set.
+      security:
+        - adminToken: []
+      responses:
+        '200':
+          description: Ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ready
+        '503':
+          description: Not ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string }
+                  error: { type: string }
+
+  /metrics:
+    get:
+      tags: [ops]
+      operationId: adminMetrics
+      summary: Prometheus-style metrics placeholder
+      security:
+        - adminToken: []
+      responses:
+        '200':
+          description: Metrics text
+          content:
+            text/plain:
+              schema:
+                type: string
+
+components:
+  securitySchemes:
+    adminToken:
+      type: apiKey
+      in: header
+      name: X-Admin-Token
+      description: Also accepted as Authorization Bearer {ADMIN_HTTP_TOKEN}

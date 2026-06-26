@@ -1,0 +1,17 @@
+version: v1
+brick: item
+
+service:
+  List:
+    input: {}
+    output: { type: array, items: { $ref: '../_types.yaml#/types/Item' } }
+  Get:
+    input: { id: { $ref: '../_types.yaml#/types/UUID' } }
+    output: { $ref: '../_types.yaml#/types/Item' }
+  Create:
+    input:
+      title: { type: string, minLength: 1 }
+    output: { $ref: '../_types.yaml#/types/Item' }
+  Delete:
+    input: { id: { $ref: '../_types.yaml#/types/UUID' } }
+    output: {}

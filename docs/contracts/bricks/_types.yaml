@@ -1,0 +1,31 @@
+# Shared types for inter-brick contracts
+# Reference from brick/*.yaml via $ref or copy field names
+
+version: v1
+
+types:
+  UUID:
+    type: string
+    format: uuid
+
+  Timestamp:
+    type: string
+    format: date-time
+
+  PaginationFilter:
+    properties:
+      cursor: { type: string, nullable: true }
+      limit: { type: integer, minimum: 1, maximum: 100, default: 20 }
+
+  PaginationResult:
+    properties:
+      items: { type: array }
+      next_cursor: { type: string, nullable: true }
+      has_more: { type: boolean }
+
+  Item:
+    properties:
+      id: { $ref: '#/types/UUID' }
+      title: { type: string }
+      created_at: { $ref: '#/types/Timestamp' }
+      updated_at: { $ref: '#/types/Timestamp' }

@@ -1,0 +1,94 @@
+{
+  "project": "go-brick-template",
+  "language": "go",
+  "go_version": "1.23",
+  "architecture": "monolith-modules-and-bricks",
+  "reference_architecture": "networking-backend (modules + bricks)",
+  "manifests": {
+    "project_and_docs": "llm/manifest.json",
+    "codebase": "llm/codebase/manifest.json"
+  },
+  "terminology": {
+    "module": "Infrastructure and external API wrappers in module/. Implements runtime.Module; wired via constructor DI.",
+    "brick": "Isolated domain in internal/brick/<name>/ with model, repository (Squirrel), service, and contract.go. Cross-brick communication only via contract interfaces."
+  },
+  "docs": {
+    "readme": "README.md",
+    "architecture": "docs/ARCHITECTURE.md",
+    "modules": "docs/MODULES.md",
+    "bricks": "docs/BRICKS.md",
+    "contracts_index": "docs/contracts/README.md",
+    "openapi": "docs/contracts/openapi.yaml",
+    "errors": "docs/contracts/errors.md"
+  },
+  "persistence": {
+    "migrations": "migrations/",
+    "tool": "goose",
+    "query_builder": "github.com/Masterminds/squirrel",
+    "driver": "github.com/jackc/pgx/v5",
+    "access": "module/postgres DB (Read/Write pools)",
+    "not_used": ["sqlc", "gen/", "query_*.sql"]
+  },
+  "modules": {
+    "interface": "application.Module { Init(ctx, info) error; Run(ctx, closer) }",
+    "doc": "docs/MODULES.md",
+    "wiring": "constructor DI in internal/application — no appstate",
+    "init_order": ["postgres", "http", "admin_http"],
+    "list": {
+      "implemented": ["postgres", "http", "admin_http"],
+      "extension_pattern": ["redis", "qdrant", "storage", "llm", "whisper", "embedder", "worker", "apple"]
+    }
+  },
+  "bricks": {
+    "doc": "docs/BRICKS.md",
+    "path": "internal/brick/",
+    "contracts_dir": "docs/contracts/bricks/",
+    "structure": ["contract.go", "model/", "repository/postgres.go", "service/service.go"],
+    "list": ["item"],
+    "rules": [
+      "No direct import between bricks",
+      "Cross-brick only via contract.Service interfaces",
+      "HTTP handlers call brick contracts only",
+      "Wiring in internal/application/wire.go and registry.go",
+      "Each brick owns its PostgreSQL tables",
+      "Microservice-ready: contract.yaml becomes gRPC/HTTP client"
+    ]
+  },
+  "contracts": {
+    "rest_external": "docs/contracts/openapi.yaml",
+    "inter_brick": "docs/contracts/bricks/*.yaml",
+    "shared_types": "docs/contracts/bricks/_types.yaml"
+  },
+  "conventions": {
+    "api_prefix": "/api/v1",
+    "admin_prefix": "/admin",
+    "id_format": "uuid",
+    "error_envelope": "docs/contracts/errors.md",
+    "openapi_extensions": {
+      "x-brick": "handling brick name",
+      "x-modules": "modules used"
+    }
+  },
+  "read_order": {
+    "docs_and_contracts": [
+      "llm/manifest.json",
+      "docs/ARCHITECTURE.md",
+      "docs/MODULES.md",
+      "docs/BRICKS.md",
+      "docs/contracts/README.md"
+    ],
+    "code_changes": [
+      "llm/codebase/manifest.json",
+      "internal/application/wire.go",
+      "internal/api/handlers/router.go",
+      "internal/brick/<name>/contract.go"
+    ]
+  },
+  "do_not": [
+    "Use sqlc or SQL codegen",
+    "Import one brick package from another brick directly",
+    "Create pgx/redis clients outside module/",
+    "Use global appstate — pass deps via constructors in application layer",
+    "Edit .cursor/plans/*.plan.md unless asked"
+  ]
+}

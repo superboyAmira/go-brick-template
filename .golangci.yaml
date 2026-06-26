@@ -1,0 +1,267 @@
+version: "2"
+run:
+  concurrency: 4
+  issues-exit-code: 1
+  tests: true
+output:
+  path-prefix: ""
+linters:
+  default: none
+  enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    # - containedctx
+    - copyloopvar
+    - depguard
+    - dogsled
+    - durationcheck
+    - errcheck
+    - errname
+    - exhaustive
+    - funlen
+    - gocheckcompilerdirectives
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - goprintffuncname
+    - gosec
+    - govet
+    - grouper
+    - importas
+    - inamedparam
+    - ineffassign
+    - makezero
+    - mirror
+    - misspell
+    - noctx
+    - nolintlint
+    # - prealloc
+    - rowserrcheck
+    - staticcheck
+    - unconvert
+    - unused
+    - whitespace
+  settings:
+    depguard:
+      rules:
+        main:
+          files:
+            - $all
+          allow:
+            - $gostd
+            - go.uber.org/
+            - golang.org/
+            - gitlab.wildberries.ru/
+            - github.com/
+            - google.golang.org/
+            - gopkg.in/
+          deny:
+            - pkg: github.com/pkg/errors
+              desc: the repo is archived and should be replaced with standard lib errors
+            - pkg: github.com/Shopify/sarama
+              desc: use github.com/IBM/sarama instead
+            - pkg: golang.org/x/net/context
+              desc: use standard lib context
+            - pkg: github.com/jackc/pgx$
+              desc: use newer version
+            - pkg: github.com/jackc/pgx/v4$
+              desc: use newer version
+    dogsled:
+      max-blank-identifiers: 3
+    dupl:
+      threshold: 100
+    errcheck:
+      check-type-assertions: true
+      check-blank: false
+    exhaustive:
+      default-signifies-exhaustive: true
+      ignore-enum-members: .*Undefined.*|.*Count
+    funlen:
+      lines: 200
+      statements: 100
+    gocognit:
+      min-complexity: 40
+    goconst:
+      min-len: 4
+      min-occurrences: 3
+    gocritic:
+      disabled-checks:
+        - docStub
+        - ifElseChain
+        - importShadow
+        - initClause
+        - octalLiteral
+        - singleCaseSwitch
+        - sloppyReassign
+        - unnamedResult
+      enabled-tags:
+        - diagnostic
+        - experimental
+        - opinionated
+        - performance
+        - style
+      settings:
+        hugeParam:
+          sizeThreshold: 1024
+        rangeValCopy:
+          sizeThreshold: 1024
+    gocyclo:
+      min-complexity: 35
+    gosec:
+      excludes:
+        - G101
+        - G108
+        - G402
+    grouper:
+      const-require-single-const: false
+      const-require-grouping: false
+      import-require-single-import: true
+      import-require-grouping: false
+      type-require-single-type: false
+      type-require-grouping: false
+      var-require-single-var: false
+      var-require-grouping: false
+    importas:
+      alias:
+        - pkg: log
+          alias: stdlog
+      no-unaliased: false
+    lll:
+      line-length: 110
+      tab-width: 4
+    misspell:
+      locale: US
+      ignore-rules:
+        - behaviour
+        - cancelled
+        - cancelling
+        - favour
+        - marshalled
+        - marshalling
+    nakedret:
+      max-func-lines: 20
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+      allow-unused: false
+    staticcheck:
+      initialisms:
+        - ACL
+        - API
+        - ASCII
+        - CPU
+        - CSS
+        - DNS
+        - EOF
+        - GUID
+        - HTML
+        - HTTP
+        - HTTPS
+        - ID
+        - IP
+        - JSON
+        - QPS
+        - RAM
+        - RPC
+        - SLA
+        - SMTP
+        - SQL
+        - SSH
+        - TCP
+        - TLS
+        - TTL
+        - UDP
+        - UI
+        - GID
+        - UID
+        - UUID
+        - URI
+        - URL
+        - UTF8
+        - VM
+        - XML
+        - XMPP
+        - XSRF
+        - XSS
+        - SIP
+        - RTP
+        - AMQP
+        - DB
+        - TS
+        - 2FA
+        - ACS
+        - DB
+        - GC
+        - GRPC
+        - IAM
+        - IDP
+        - JPEG
+        - JPG
+        - JWT
+        - INN
+        - MQ
+        - PNG
+        - RFC
+        - RSA
+        - SA
+        - SAML
+        - SLO
+        - SMS
+        - TOTP
+        - WB
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          # - containedctx
+          - err113
+          - funlen
+          - gocognit
+          - goconst
+          - gosec
+          - mnd
+        path: _test\.go
+      - linters:
+          - gocritic
+        text: 'unnecessaryDefer:'
+      - linters:
+          - lll
+        source: ^//go:generate |^// @Description |^// @Header |.*`.* ?validate:\"|.*`.* ?mapstructure:\"|.*`.* ?example:\"
+      - linters:
+          - lll
+        path: \.pb\.
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - golines
+    - gci
+    - gofmt
+    - goimports
+  settings:
+    golines:
+      max-len: 110
+      shorten-comments: false
+      tab-len: 4
+      chain-split-dots: true
+    gci:
+      sections:
+        - standard
+        - default
+      custom-order: true
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

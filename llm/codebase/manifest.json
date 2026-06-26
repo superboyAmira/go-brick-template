@@ -1,0 +1,116 @@
+{
+  "project": "go-brick-template",
+  "kind": "codebase",
+  "language": "go",
+  "go_version": "1.23",
+  "module_import": "github.com/go-brick-template/go-brick-template",
+  "docs_manifest": "../manifest.json",
+  "entrypoints": {
+    "production": {
+      "path": "cmd/app/main.go",
+      "boot": "internal/application/application.go"
+    }
+  },
+  "layout": {
+    "cmd": "Binaries",
+    "module": "Infrastructure and external APIs (runtime.Module)",
+    "internal/application": "Composition root: Run, wire, runtime lifecycle",
+    "internal/registry": "Wired brick contracts (Registry)",
+    "internal/api": "Fiber HTTP: handlers, middleware, swagger",
+    "internal/brick": "Domain bricks (contract + repository + service)",
+    "internal/config": "Env-based Config and options.*",
+    "internal/shared": "Cross-cutting shared types (apperr, enums)",
+    "internal/pkg": "Generic utils only (pagination)",
+    "migrations": "goose SQL migrations",
+    "docs/contracts": "OpenAPI + inter-brick YAML"
+  },
+  "application": {
+    "run": "internal/application/application.go",
+    "wire_bricks": "internal/application/wire.go",
+    "module_interface": "internal/application/runtime/app.go (runtime.Module)",
+    "registry": "internal/registry/registry.go",
+    "closer": "internal/application/runtime/closer.go",
+    "wiring_style": "constructor DI — no appstate global registry"
+  },
+  "api": {
+    "router": "internal/api/handlers/router.go",
+    "prefix": "/api/v1",
+    "middleware": {
+      "request_id": "internal/api/middleware/request_id.go"
+    },
+    "response": "internal/api/response/response.go",
+    "errors": "internal/shared/apperr/errors.go",
+    "swagger": {
+      "register": "internal/api/swagger/swagger.go",
+      "openapi_embed": "internal/api/swagger/openapi.yaml",
+      "admin_openapi": "internal/api/swagger/admin-openapi.yaml"
+    },
+    "handlers": {
+      "items": "internal/api/handlers/router.go"
+    }
+  },
+  "modules": {
+    "interface": "internal/application/runtime/app.go (runtime.Module)",
+    "wiring": "constructor DI from internal/application/application.go",
+    "implemented": {
+      "postgres": {
+        "path": "module/postgres/",
+        "entry": "module/postgres/module.go",
+        "constructor": "New(ctx, *options.PostgresOptions)",
+        "db_type": "postgres.DB (Read/Write pools)"
+      },
+      "http": {
+        "path": "module/http/",
+        "entry": "module/http/module.go",
+        "constructor": "New(*options.HTTPOptions)",
+        "mount_routes": "MountRoutes(cfg, *registry.Registry)"
+      },
+      "admin_http": {
+        "path": "module/admin_http/",
+        "entry": "module/admin_http/module.go",
+        "constructor": "New(*options.HTTPOptions, *postgres.DB)"
+      }
+    }
+  },
+  "bricks": {
+    "path": "internal/brick/",
+    "contract_pattern": "internal/brick/<name>/contract.go",
+    "wired_in_registry": "internal/registry/registry.go",
+    "wired_in": "internal/application/wire.go",
+    "items": {
+      "item": {
+        "package": "internal/brick/item",
+        "contract": "internal/brick/item/contract.go",
+        "service": "internal/brick/item/service/service.go",
+        "repository": "internal/brick/item/repository/postgres.go",
+        "handlers": ["internal/api/handlers/router.go"],
+        "wired": true
+      }
+    }
+  },
+  "migrations": {
+    "tool": "goose",
+    "path": "migrations/",
+    "files": ["20260626120000_init_items.sql"]
+  },
+  "read_order": [
+    "llm/codebase/manifest.json",
+    "internal/application/application.go",
+    "internal/application/wire.go",
+    "internal/registry/registry.go",
+    "internal/api/handlers/router.go",
+    "internal/brick/<name>/contract.go"
+  ],
+  "task_routing": {
+    "new_rest_route": ["internal/api/handlers/", "docs/contracts/openapi.yaml", "internal/api/swagger/openapi.yaml"],
+    "new_domain_logic": ["internal/brick/<name>/service/", "internal/brick/<name>/contract.go"],
+    "new_sql_table": ["migrations/", "internal/brick/<name>/repository/"],
+    "new_external_api": ["module/<name>/module.go", "internal/config/options/", "docs/MODULES.md"]
+  },
+  "do_not": [
+    "Import brick packages from another brick (use contract interfaces)",
+    "Use sqlc or SQL codegen",
+    "Add pgx pools outside module/postgres",
+    "Use global appstate registry — pass deps via constructors and wire.go"
+  ]
+}

@@ -1,0 +1,21 @@
+# Local dev overlay: published ports + one-shot migrate.
+# Run app from IDE: go run ./cmd/app
+
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+
+  migrate:
+    image: golang:1.23-bookworm
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-brick}:${POSTGRES_PASSWORD:-brick}@postgres:5432/${POSTGRES_DB:-brick}?sslmode=disable
+    volumes:
+      - ./migrations:/migrations:ro
+    command: >
+      sh -c "go run github.com/pressly/goose/v3/cmd/goose@v3.24.1
+      -dir /migrations postgres \"$$DATABASE_URL\" up"

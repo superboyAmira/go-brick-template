@@ -1,0 +1,160 @@
+openapi: 3.1.0
+info:
+  title: Go Brick Template API
+  version: 1.0.0
+  description: |
+    REST API template with modules + bricks architecture.
+    Handlers call brick contracts; modules provide infrastructure.
+  contact:
+    name: go-brick-template
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local
+
+tags:
+  - name: items
+    description: brick/item (example domain)
+
+paths:
+  /items:
+    get:
+      tags: [items]
+      operationId: listItems
+      x-brick: item
+      x-modules: [postgres]
+      security: []
+      summary: List items
+      responses:
+        '200':
+          description: Item list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Item'
+    post:
+      tags: [items]
+      operationId: createItem
+      x-brick: item
+      x-modules: [postgres]
+      security: []
+      summary: Create item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateItemRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /items/{id}:
+    get:
+      tags: [items]
+      operationId: getItem
+      x-brick: item
+      x-modules: [postgres]
+      security: []
+      summary: Get item by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [items]
+      operationId: deleteItem
+      x-brick: item
+      x-modules: [postgres]
+      security: []
+      summary: Delete item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    Item:
+      type: object
+      required: [id, title, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    CreateItemRequest:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          minLength: 1
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, request_id]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+            request_id:
+              type: string
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    NotFound:
+      description: Entity not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
